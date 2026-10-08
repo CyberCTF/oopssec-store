@@ -16,7 +16,7 @@ seeded at first start.
 
 ```bash
 isoloom generate
-isoloom up docker
+isoloom run docker
 ```
 
 Then open http://localhost:3000/ (the app's base URL is baked as `http://localhost:3000`, so keep
