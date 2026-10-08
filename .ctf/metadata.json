@@ -1,0 +1,9 @@
+{
+  "title": "OSS OopsSec Store",
+  "description": "OSS OopsSec Store: a deliberately vulnerable Next.js / Prisma e-commerce app with 36 flag challenges across web, API, authentication, business logic, cryptography, supply chain, AI agents and MCP.",
+  "question": "Capture the store's flags and submit them in the app.",
+  "category": "WEB",
+  "difficulty": 3,
+  "evidence_kind": "SECRET",
+  "capabilities": ["broken-access-control", "jwt-attacks", "business-logic-flaws", "ssrf", "xxe", "cross-site-scripting"]
+}

@@ -1,0 +1,38 @@
+title: "[Solve] "
+labels: ["community"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Post the full solution. Alternative routes to the same flag are the most
+        useful thing you can share here — they are what the walkthroughs miss.
+
+  - type: input
+    id: challenge
+    attributes:
+      label: Which challenge?
+      description: The title as it shows on the roadmap. The thread title above usually already carries it.
+      placeholder: "AES-CBC padding oracle"
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: How did you solve it?
+      description: The reasoning, not just the payload. What made you look there?
+    validations:
+      required: true
+  - type: textarea
+    id: payload
+    attributes:
+      label: Payload or script
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: different
+    attributes:
+      label: How does this differ from the published walkthrough?
+      description: Leave blank if you followed the same route.
+    validations:
+      required: false

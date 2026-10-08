@@ -1,0 +1,155 @@
+name: Welcome PR
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  # Both are required, not alternatives: acting on a PR through the issues API
+  # answers with `x-accepted-github-permissions: issues=write;
+  # pull_requests=write`, and the `;` is an AND. Narrowing either one to read
+  # gets a 403 on addLabels and createComment.
+  pull-requests: write
+  issues: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label size and greet when there is something to say
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+            const author = pr.user.login;
+            const repoUrl = `https://github.com/${owner}/${repo}`;
+
+            // --- Size label -------------------------------------------------
+            // Applied to every PR, bots included: it is silent, and dependabot
+            // batches are exactly the ones worth sizing at a glance.
+            const totalChanges = pr.additions + pr.deletions;
+            let sizeLabel;
+            if (totalChanges <= 10) sizeLabel = 'XS';
+            else if (totalChanges <= 50) sizeLabel = 'S';
+            else if (totalChanges <= 200) sizeLabel = 'M';
+            else if (totalChanges <= 500) sizeLabel = 'L';
+            else sizeLabel = 'XL';
+
+            const sizeColors = { XS: '3CBF00', S: '5D9801', M: 'FBCA04', L: 'E97800', XL: 'D93F0B' };
+            const labelName = `size/${sizeLabel}`;
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: labelName });
+            } catch (e) {
+              if (e.status !== 404) throw e;
+              try {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: labelName,
+                  color: sizeColors[sizeLabel],
+                  description: `PR size: ${sizeLabel}`,
+                });
+              } catch (createErr) {
+                // 422 means a concurrent run created it first — safe to ignore
+                if (createErr.status !== 422) throw createErr;
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels: [labelName],
+            });
+
+            if (pr.user.type === 'Bot') return;
+
+            // Maintainers know where the contributing guide is.
+            const insider = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+            if (insider.includes(pr.author_association)) return;
+
+            // --- Who is this? -----------------------------------------------
+            // The REST issue list is read straight from the database, unlike the
+            // search API, which lags behind by a few seconds on a fresh PR and
+            // would hand a first-timer the returning-contributor path. Stop at
+            // the first hit rather than walking the author's whole history.
+            let isFirstContribution = true;
+            const history = github.paginate.iterator(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              creator: author,
+              state: 'all',
+              per_page: 100,
+            });
+            outer: for await (const page of history) {
+              for (const issue of page.data) {
+                if (issue.pull_request && issue.number !== prNumber) {
+                  isFirstContribution = false;
+                  break outer;
+                }
+              }
+            }
+
+            // --- What kind of PR is this? -----------------------------------
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: prNumber,
+              per_page: 100,
+            });
+            const paths = files.map((f) => f.filename);
+
+            const isHallOfFame =
+              paths.length > 0 && paths.every((p) => p.startsWith('hall-of-fame/'));
+            const isChallenge = paths.includes('prisma/flags.ts');
+
+            // --- Body --------------------------------------------------------
+            const contributing = `${repoUrl}/blob/main/CONTRIBUTING.md`;
+            const conduct = `${repoUrl}/blob/main/CODE_OF_CONDUCT.md`;
+            const paragraphs = [];
+
+            if (isHallOfFame) {
+              paragraphs.push(
+                'All flags down. Nice! Once this is merged, a badge is generated for you and served from the docs site, and your profile shows up on `/hall-of-fame`.',
+                `Make sure the entry carries \`username\`, \`avatarUrl\`, \`githubUrl\` and \`date\` (YYYY-MM-DD), appended to the array — \`country\` is optional and puts a flag next to your name. If you enjoyed the route, a star helps other people find the project, and [Show your solve](${repoUrl}/discussions/categories/show-your-solve) is where the write-ups live.`
+              );
+            } else if (isChallenge) {
+              if (isFirstContribution) {
+                paragraphs.push(`Welcome @${author}, and thanks for your first PR here.`);
+                paragraphs.push(
+                  'This one touches `prisma/flags.ts`, so it reads as a new challenge. Shortest path through the checklist: run `npm run test:unit`. `challenge-parity.test.ts` fails once for every file a new flag still needs — reference doc, walkthrough, roadmap entry, README counts — and names each one. A green suite means the checklist is done.'
+                );
+              } else {
+                paragraphs.push(
+                  'This one touches `prisma/flags.ts`, so a reminder rather than a lecture: `npm run test:unit` runs `challenge-parity.test.ts`, which fails once for every file a new flag still needs and names each one.'
+                );
+              }
+              paragraphs.push(
+                "Two things it can't check for you: the doc under `content/vulnerabilities/` stays concept and fix only — payloads and the flag value belong in the walkthrough — and the vulnerable path has to be reachable from the UI."
+              );
+              if (isFirstContribution) {
+                paragraphs.push(
+                  `The [contributing guide](${contributing}#adding-a-challenge) has the long version, and here is the [code of conduct](${conduct}). A maintainer will pick this up shortly.`
+                );
+              }
+            } else if (isFirstContribution) {
+              paragraphs.push(
+                `Welcome @${author}, and thanks for your first PR here!`,
+                `Code Quality and the exploitation suite are running now. You can follow them in the [Checks tab](${repoUrl}/pull/${prNumber}/checks). If one goes red and the message isn't obvious, ask in this thread rather than force-pushing blind.`,
+                `[Contributing guide](${contributing}) · [Code of conduct](${conduct}). A maintainer will pick this up shortly.`
+              );
+            }
+
+            // Returning contributor, ordinary change: the PR page already says
+            // everything a comment could. Stay quiet.
+            if (paragraphs.length === 0) return;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: paragraphs.join('\n\n'),
+            });

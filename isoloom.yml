@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://www.isoloom.com/schema/v1.json
+# OSS OopsSec Store (by kOaDT and the OopsSec Store contributors) as an Isoloom spec: the upstream
+# Next.js source, vendored unchanged in app/, built by its own Dockerfile. The image creates and
+# seeds its SQLite database at first start. `isoloom generate`, then `isoloom up docker`.
+version: 1
+name: oopssec-store
+
+networks:
+  lab: { cidr: 10.60.35.0/24, internet: false }
+
+machines:
+  store:
+    networks: { lab: 10 }
+    services: [{ port: 3000, name: web, http: true, publish: 3000 }]
+    resources: { cpus: 1, memory_mb: 1024 }
+    volumes: { data: /app/data, uploads: /app/uploads, documents: /app/documents }
+    docker:
+      build: app
+
+checks:
+  - name: the store answers
+    http: http://store:3000/
+    wait: 240
+  - name: the products API answers (the database is seeded)
+    script: checks/products.sh
+    wait: 60
+  - name: the flag progress API answers
+    http: http://store:3000/api/flags/count
+
+message: |
+  OopsSec Store answers at http://localhost:{{ machines.store.services.0.publish }}/. It hides 36
+  challenges, each with a flag (OSS{...}) to submit in the app; hints are in the app and the
+  walkthroughs at https://koadt.github.io/oss-oopssec-store.

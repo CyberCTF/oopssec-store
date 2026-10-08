@@ -1,0 +1,156 @@
+{
+  "generated_by_isoloom": "from isoloom.yml; don't edit: change the spec and run `isoloom generate` (`isoloom check` fails when this file is out of date)",
+  "resolved_version": 1,
+  "name": "oopssec-store",
+  "instance": null,
+  "inputs": [],
+  "networks": {
+    "lab": {
+      "cidr": "10.60.35.0/24",
+      "docker_cidr": "10.60.35.0/24",
+      "internet": false,
+      "gateway": null,
+      "gateway_address": "10.60.35.1",
+      "router": null,
+      "controller": "10.60.35.253"
+    }
+  },
+  "reach": [],
+  "machines": {
+    "store": {
+      "access": false,
+      "supplied": false,
+      "shapes": [
+        "docker"
+      ],
+      "arch": "amd64",
+      "os": null,
+      "windows": false,
+      "addresses": {
+        "lab": "10.60.35.10"
+      },
+      "docker_addresses": {
+        "lab": "10.60.35.10"
+      },
+      "services": [
+        {
+          "port": 3000,
+          "name": "web",
+          "http": true,
+          "publish": 3000
+        }
+      ],
+      "depends_on": [],
+      "inputs": [],
+      "volumes": {
+        "data": "/app/data",
+        "uploads": "/app/uploads",
+        "documents": "/app/documents"
+      },
+      "resources": {
+        "cpus": 1,
+        "memory_mb": 1024,
+        "disk_gb": 20
+      },
+      "gateway_of": [],
+      "routes": [],
+      "default_gateway": null,
+      "offline": true
+    }
+  },
+  "start_order": [
+    "store"
+  ],
+  "clones": {},
+  "tools": {},
+  "groups": {},
+  "router": null,
+  "controller": {
+    "addresses": {
+      "lab": "10.60.35.253"
+    }
+  },
+  "published": [
+    {
+      "machine": "store",
+      "port": 3000,
+      "host_port": 3000
+    }
+  ],
+  "targets": {
+    "possible": [
+      "docker",
+      "hosted",
+      "docker-vm",
+      "cloud-docker",
+      "kubernetes"
+    ],
+    "generated": [
+      "docker",
+      "hosted",
+      "docker-vm",
+      "cloud-docker",
+      "kubernetes"
+    ],
+    "refused": {},
+    "not_possible": {
+      "hybrid": "only when some machines are containers and others are VMs",
+      "vagrant": "needs `vm:` on store",
+      "proxmox": "needs `vm:` on store",
+      "cloud-vm": "needs `vm:` on store",
+      "external": "needs `external:` on store"
+    }
+  },
+  "checks": {
+    "default_position": "networks",
+    "positions": [
+      {
+        "position": "networks",
+        "machine": null,
+        "runner": "isoloom-check",
+        "checks": [
+          {
+            "name": "the store answers",
+            "derived": false,
+            "kind": "http",
+            "target": "http://store:3000/",
+            "expect": "200",
+            "wait": 240
+          },
+          {
+            "name": "the products API answers (the database is seeded)",
+            "derived": false,
+            "kind": "script",
+            "target": "checks/products.sh",
+            "expect": "",
+            "wait": 60
+          },
+          {
+            "name": "the flag progress API answers",
+            "derived": false,
+            "kind": "http",
+            "target": "http://store:3000/api/flags/count",
+            "expect": "200",
+            "wait": 30
+          }
+        ]
+      },
+      {
+        "position": "store",
+        "machine": "store",
+        "runner": "isoloom-check-store",
+        "checks": [
+          {
+            "name": "no internet from store",
+            "derived": true,
+            "kind": "http",
+            "target": "http://1.1.1.1/",
+            "expect": "blocked",
+            "wait": 0
+          }
+        ]
+      }
+    ]
+  },
+  "message": "OopsSec Store answers at http://localhost:3000/. It hides 36\nchallenges, each with a flag (OSS{...}) to submit in the app; hints are in the app and the\nwalkthroughs at https://koadt.github.io/oss-oopssec-store.\n"
+}

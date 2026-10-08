@@ -1,0 +1,43 @@
+title: "[Stuck] "
+labels: ["community"]
+body:
+  - type: input
+    id: challenge
+    attributes:
+      label: Which challenge?
+      description: The title as it shows on the roadmap. The thread title above usually already carries it.
+      placeholder: "AES-CBC padding oracle"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: The step you are on, and what you expected to happen.
+      placeholder: I am trying to forge the share token, and I expected the API to accept it.
+    validations:
+      required: true
+  - type: textarea
+    id: attempts
+    attributes:
+      label: What have you tried?
+      description: Payloads, requests, tooling. Paste the actual commands.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened instead?
+      description: The exact response, error, or status code you get.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: How are you running the lab?
+      description: npx / Docker / manual clone, plus your Node version.
+      placeholder: "Docker, image tag latest"
+    validations:
+      required: false

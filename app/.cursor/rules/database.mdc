@@ -1,0 +1,77 @@
+---
+description: Prisma database patterns and schema reference
+globs:
+  - "prisma/**/*"
+  - "lib/prisma.ts"
+  - "lib/database.ts"
+---
+
+# Database Patterns
+
+## Prisma Client
+
+```typescript
+import { prisma } from "@/lib/prisma";
+```
+
+## Types
+
+Use Prisma-generated types:
+
+```typescript
+import { User, Product, Order } from "@/lib/generated/prisma";
+```
+
+## Key Models
+
+| Model | Description |
+|-------|-------------|
+| `User` | Auth & user data (email, password, role: CUSTOMER/ADMIN) |
+| `Product` | E-commerce catalog |
+| `Cart` / `CartItem` | Shopping cart |
+| `Order` | Order management with status |
+| `Address` | User and order addresses |
+| `Flag` | CTF flags (slug, category, difficulty) |
+| `Hint` | 3 progressive hints per flag (levels 1-3) |
+| `RevealedHint` | Tracks which hints a player has unlocked |
+| `FoundFlag` | Tracks which flags a player has captured |
+| `Review` | Product reviews |
+| `SupportAccessToken` | Support access tokens |
+
+## Commands
+
+```bash
+npm run db:generate   # Generate Prisma Client
+npm run db:push       # Push schema changes
+npm run db:migrate    # Run migrations
+npm run db:studio     # Open Prisma Studio
+npm run db:seed       # Seed with initial data and flags
+```
+
+## Seeding Flags
+
+Flags and hints live in `prisma/flags.ts`, the single source of truth for the CTF curriculum. `prisma/seed.ts` imports them and upserts them by slug — don't add flags to `seed.ts` directly.
+
+```typescript
+// prisma/flags.ts
+export const flags: ChallengeFlag[] = [
+  // ...
+  {
+    flag: "OSS{example_flag}",
+    slug: "vulnerability-slug",
+    markdownFile: "vulnerability-slug.md",
+    walkthroughSlug: "vulnerability-writeup",
+    category: "INJECTION",
+    difficulty: "MEDIUM",
+  },
+];
+
+export const flagHints: Record<string, string[]> = {
+  // ...
+  "vulnerability-slug": ["Vague nudge.", "Clearer direction.", "Near-solution."],
+};
+```
+
+`tests/unit/challenge-parity.test.ts` validates every entry against the rest of the repo. Run `npm run test:unit` after editing this file. See `CONTRIBUTING.md` ("Adding a challenge") for the full flow.
+
+Other seed data (users, products, orders, coupons, gift cards) stays in `prisma/seed.ts`.
