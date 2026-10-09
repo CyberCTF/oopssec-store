@@ -98,7 +98,8 @@
       "vagrant": "needs `vm:` on store",
       "proxmox": "needs `vm:` on store",
       "cloud-vm": "needs `vm:` on store",
-      "external": "needs `external:` on store"
+      "external": "needs `external:` on store",
+      "cloud-services": "left out by `targets:`"
     }
   },
   "checks": {

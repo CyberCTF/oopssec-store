@@ -9,6 +9,9 @@ services:
   store:
     build:
       context: ../../app
+      labels:
+        isoloom.managed: 'true'
+        isoloom.environment: oopssec-store
     image: isoloom/oopssec-store-store
     platform: linux/amd64
     hostname: store
@@ -43,6 +46,8 @@ services:
           memory: 1024M
     labels:
       isoloom.service.web: http:3000
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
     restart: unless-stopped
   store-routes:
     image: alpine:3.20
@@ -64,6 +69,9 @@ services:
       store:
         condition: service_started
     restart: unless-stopped
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
   isoloom-check:
     image: curlimages/curl:8.11.1
     profiles:
@@ -85,6 +93,9 @@ services:
         condition: service_healthy
       store-routes:
         condition: service_healthy
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
   isoloom-check-store:
     image: curlimages/curl:8.11.1
     profiles:
@@ -100,6 +111,9 @@ services:
         condition: service_healthy
       store-routes:
         condition: service_healthy
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
   isoloom-probe-amd64:
     image: busybox:1.37.0-musl
     platform: linux/amd64
@@ -111,14 +125,32 @@ services:
     - isoloom-probe-amd64:/probe
     network_mode: none
     restart: no
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
 networks:
   lab:
     ipam:
       config:
       - subnet: 10.60.35.0/24
         gateway: 10.60.35.1
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
 volumes:
-  store-data: {}
-  store-uploads: {}
-  store-documents: {}
-  isoloom-probe-amd64: {}
+  store-data:
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
+  store-uploads:
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
+  store-documents:
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
+  isoloom-probe-amd64:
+    labels:
+      isoloom.managed: 'true'
+      isoloom.environment: oopssec-store
