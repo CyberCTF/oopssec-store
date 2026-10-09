@@ -4,6 +4,5 @@
   "question": "Capture the store's flags and submit them in the app.",
   "category": "WEB",
   "difficulty": 3,
-  "evidence_kind": "SECRET",
-  "capabilities": ["broken-access-control", "jwt-attacks", "business-logic-flaws", "ssrf", "xxe", "cross-site-scripting"]
+  "evidence_kind": "SECRET"
 }
