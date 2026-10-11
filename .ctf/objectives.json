@@ -1,0 +1,534 @@
+{
+  "objectives": [
+    {
+      "key": "main",
+      "title": "React2Shell (CVE-2025-55182)",
+      "prompt": "The store runs a React Server Components version affected by CVE-2025-55182. Get code execution on the server and read the flag it keeps in its environment.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{r3act2sh3ll}",
+      "hints": [
+        "Which framework and version render the store's pages?",
+        "Look up CVE-2025-55182 and how React Server Components deserialize what the client sends."
+      ],
+      "steps": [
+        {
+          "key": "framework",
+          "title": "Fingerprint the stack",
+          "prompt": "Which React framework serves the store? (name only)",
+          "check": {
+            "answer": [
+              "next.js",
+              "nextjs",
+              "next"
+            ]
+          }
+        },
+        {
+          "key": "class",
+          "title": "Name the bug class",
+          "prompt": "Which vulnerability class is CVE-2025-55182? (one word or the CWE name)",
+          "check": {
+            "answer": [
+              "deserialization",
+              "insecure deserialization",
+              "deserialization of untrusted data",
+              "cwe-502"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "key": "public-env-variable",
+      "title": "Public environment variable exposure",
+      "optional": true,
+      "prompt": "A secret was put in an environment variable that ends up in the browser. Find it in the client code and decode it.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{public_3nvir0nment_v4ri4bl3}",
+      "hints": [
+        "Next.js ships some environment variables to the browser: which prefix marks them?",
+        "The value is encoded, not encrypted."
+      ]
+    },
+    {
+      "key": "weak-jwt-secret",
+      "title": "Weak JWT secret",
+      "prompt": "The session tokens are signed with a weak secret. Recover it, forge a token for a more privileged account and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{w34k_jwt_s3cr3t_k3y}",
+      "hints": [
+        "Decode your session token: which algorithm signs it?",
+        "Look up offline JWT secret cracking with a wordlist."
+      ]
+    },
+    {
+      "key": "client-side-price-manipulation",
+      "title": "Client-side price manipulation",
+      "optional": true,
+      "prompt": "The checkout trusts a price computed in the browser. Pay less than the real price for an order and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{cl13nt_s1d3_pr1c3_m4n1pul4t10n}",
+      "hints": [
+        "Which values does the order request carry besides the product IDs?"
+      ]
+    },
+    {
+      "key": "weak-md5-hashing",
+      "title": "Weak password hashing (MD5)",
+      "optional": true,
+      "prompt": "Password hashes leak somewhere in the store and they are unsalted MD5. Crack one and use it to collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{w34k_md5_h4sh1ng}",
+      "hints": [
+        "Once you have a hash, how fast can an unsalted MD5 be reversed?"
+      ]
+    },
+    {
+      "key": "insecure-direct-object-reference",
+      "title": "Insecure direct object reference",
+      "prompt": "Order details are fetched by ID. Read an order that is not yours and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{1ns3cur3_d1r3ct_0bj3ct_r3f3r3nc3}",
+      "hints": [
+        "What happens if you change the order ID in the request?"
+      ]
+    },
+    {
+      "key": "cross-site-scripting-xss",
+      "title": "Stored cross-site scripting",
+      "prompt": "Something you submit is shown to other visitors without sanitising. Store script that runs in their browser and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{cr0ss_s1t3_scr1pt1ng_xss}",
+      "hints": [
+        "Which user-submitted content is displayed on product pages?",
+        "Look up stored XSS."
+      ]
+    },
+    {
+      "key": "cross-site-request-forgery",
+      "title": "Cross-site request forgery",
+      "prompt": "A state-changing action has no CSRF protection. Make a victim's browser perform it and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{cr0ss_s1t3_r3qu3st_f0rg3ry}",
+      "hints": [
+        "Which forms change data without any per-request token?"
+      ]
+    },
+    {
+      "key": "mass-assignment",
+      "title": "Mass assignment",
+      "prompt": "An endpoint accepts more properties than its form sends. Give your account a property you should not have and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{m4ss_4ss1gnm3nt_vuln3r4b1l1ty}",
+      "hints": [
+        "Compare the fields the profile or sign-up form sends with the fields of a user object."
+      ]
+    },
+    {
+      "key": "path-traversal",
+      "title": "Path traversal",
+      "prompt": "A file download takes a name from the request. Read a file outside the directory it is meant to serve and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{p4th_tr4v3rs4l_4tt4ck}",
+      "hints": [
+        "Which endpoint serves the documents, and how does it build the path?",
+        "Look up path traversal with parent-directory segments."
+      ]
+    },
+    {
+      "key": "server-side-request-forgery",
+      "title": "Server-side request forgery",
+      "prompt": "A feature makes the server fetch a URL you supply. Reach an internal-only resource with it and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{s3rv3r_s1d3_r3qu3st_f0rg3ry}",
+      "hints": [
+        "Which feature fetches content from a URL on your behalf?",
+        "Internal pages are only served to requests from the server itself."
+      ]
+    },
+    {
+      "key": "sql-injection",
+      "title": "SQL injection",
+      "prompt": "A query is built from your input. Use SQL injection to collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{sql_1nj3ct10n_vuln3r4b1l1ty}",
+      "hints": [
+        "Which search or filter feature sends raw input to the database?"
+      ]
+    },
+    {
+      "key": "information-disclosure-api-error",
+      "title": "Information disclosure via API errors",
+      "optional": true,
+      "prompt": "An API error says more than it should. Trigger it and collect the flag from the response.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{1nf0_d1scl0sur3_4p1_3rr0r}",
+      "hints": [
+        "Send malformed or unexpected input to the API and read the full error body."
+      ]
+    },
+    {
+      "key": "malicious-file-upload",
+      "title": "Malicious file upload",
+      "optional": true,
+      "prompt": "An upload accepts an image format that can carry script. Upload one that runs when viewed and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{m4l1c10us_f1l3_upl04d_xss}",
+      "hints": [
+        "Which image format is XML and can embed script?"
+      ]
+    },
+    {
+      "key": "product-search-sql-injection",
+      "title": "Product search SQL injection",
+      "optional": true,
+      "prompt": "The product search builds its SQL query from your search terms. Use SQL injection there to collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{pr0duct_s34rch_sql_1nj3ct10n}",
+      "hints": [
+        "What does the search return when your input breaks the query syntax?"
+      ]
+    },
+    {
+      "key": "session-fixation-weak-session-management",
+      "title": "Session fixation",
+      "optional": true,
+      "prompt": "The support-session feature lets a session identifier be set before login and kept after. Ride an admin's session and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{s3ss10n_f1x4t10n_4tt4ck}",
+      "hints": [
+        "How does the support feature create and hand over session identifiers?",
+        "Look up session fixation."
+      ]
+    },
+    {
+      "key": "brute-force-no-rate-limiting",
+      "title": "Brute force without rate limiting",
+      "optional": true,
+      "prompt": "The login never slows down or locks out. Brute force an account's password and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{brut3_f0rc3_n0_r4t3_l1m1t}",
+      "hints": [
+        "Which account would be worth guessing, and is there a lockout after failures?"
+      ]
+    },
+    {
+      "key": "x-forwarded-for-sql-injection",
+      "title": "SQL injection via X-Forwarded-For",
+      "optional": true,
+      "prompt": "The app logs the client address from a request header straight into a query. Use SQL injection through that header to collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{x_f0rw4rd3d_f0r_sql1}",
+      "hints": [
+        "Which request header do apps behind a proxy trust for the client IP?"
+      ]
+    },
+    {
+      "key": "prompt-injection-ai-assistant",
+      "title": "Prompt injection (AI assistant)",
+      "optional": true,
+      "prompt": "Make the AI assistant reveal the internal validation code in its instructions. The assistant needs your own Mistral API key and internet access, which this lab does not have.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{pr0mpt_1nj3ct10n_41_4ss1st4nt}",
+      "hints": [
+        "The assistant's system prompt holds a secret it is told never to share."
+      ]
+    },
+    {
+      "key": "broken-object-level-authorization",
+      "title": "Broken object level authorization",
+      "prompt": "Wishlists are fetched by ID without checking who owns them. Read an internal wishlist and collect the flag from its note.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{brok3n_0bj3ct_l3v3l_4uth0r1z4t10n}",
+      "hints": [
+        "Wishlist IDs are not all random: look for a naming pattern."
+      ]
+    },
+    {
+      "key": "broken-function-level-authorization",
+      "title": "Broken function level authorization",
+      "prompt": "A privileged function of the live stream is reachable by any user. Use it and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{brok3n_funct10n_l3v3l_4uth0r1z4t10n}",
+      "hints": [
+        "Which live-stream actions should only an admin or host perform?"
+      ]
+    },
+    {
+      "key": "second-order-sql-injection",
+      "title": "Second-order SQL injection",
+      "optional": true,
+      "prompt": "Input you store safely is later reused in a query without escaping. Plant it, trigger the second query and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{s3c0nd_0rd3r_sql_1nj3ct10n}",
+      "hints": [
+        "Which stored value is read back later by another feature?",
+        "Look up second-order SQL injection."
+      ]
+    },
+    {
+      "key": "plaintext-password-in-logs",
+      "title": "Plaintext passwords in logs",
+      "optional": true,
+      "prompt": "Login attempts are logged with the password in clear. Find the logs and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{pl41nt3xt_p4ssw0rd_1n_l0gs}",
+      "hints": [
+        "Where could the application's log files be read from?"
+      ]
+    },
+    {
+      "key": "xxe-supplier-order-import",
+      "title": "XML external entity (XXE)",
+      "prompt": "The supplier order import parses XML with external entities enabled. Read a file from the server through it and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{xml_3xt3rn4l_3nt1ty_1nj3ct10n}",
+      "hints": [
+        "Which feature accepts an XML document?",
+        "Look up XXE file disclosure."
+      ]
+    },
+    {
+      "key": "insecure-password-reset",
+      "title": "Insecure password reset",
+      "prompt": "The password reset token is predictable. Reset another user's password and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{1ns3cur3_p4ssw0rd_r3s3t}",
+      "hints": [
+        "How is the reset token generated: what does it depend on?"
+      ]
+    },
+    {
+      "key": "open-redirect",
+      "title": "Open redirect",
+      "optional": true,
+      "prompt": "The login redirects to a URL taken from the request. Send it somewhere off-site and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{0p3n_r3d1r3ct_l0g1n_byp4ss}",
+      "hints": [
+        "Which query parameter decides where you land after login?"
+      ]
+    },
+    {
+      "key": "self-xss-profile-injection",
+      "title": "Self-XSS in the profile bio",
+      "optional": true,
+      "prompt": "The profile bio renders HTML. Inject script that runs on your own profile page and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{s3lf_xss_pr0f1l3_1nj3ct10n}",
+      "hints": [
+        "Which profile field is rendered without escaping?"
+      ]
+    },
+    {
+      "key": "csrf-profile-takeover-chain",
+      "title": "CSRF and self-XSS profile takeover",
+      "optional": true,
+      "prompt": "Chain the CSRF weakness with the bio self-XSS so that a victim's profile runs your script, then collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{csrf_pr0f1l3_t4k30v3r_ch41n}",
+      "hints": [
+        "The self-XSS only hurts you, unless someone else can be made to save your bio."
+      ]
+    },
+    {
+      "key": "aes-cbc-padding-oracle",
+      "title": "AES-CBC padding oracle",
+      "optional": true,
+      "prompt": "A token is encrypted with AES-CBC and the server tells valid padding from invalid. Forge a token through the padding oracle and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{p4dd1ng_0r4cl3_f0rg3d_t0k3n}",
+      "hints": [
+        "Compare the server's answers for a token with a corrupted last block.",
+        "Look up the CBC padding oracle attack."
+      ]
+    },
+    {
+      "key": "mcp-malicious-server",
+      "title": "Malicious MCP server",
+      "optional": true,
+      "prompt": "Point the AI assistant at an MCP server whose tool response carries instructions. The assistant needs your own Mistral API key and internet access, which this lab does not have.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{mcp_p01s0n3d_t00l_r3sp0ns3}",
+      "hints": [
+        "The assistant trusts what tools return as much as what you type."
+      ]
+    },
+    {
+      "key": "middleware-authorization-bypass",
+      "title": "Next.js middleware authorization bypass (CVE-2025-29927)",
+      "prompt": "The admin area is protected only by Next.js middleware, in a version affected by CVE-2025-29927. Skip the middleware and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{m1ddl3w4r3_byp4ss}",
+      "hints": [
+        "Which Next.js version runs the store?",
+        "Look up CVE-2025-29927 and the internal header Next.js uses to avoid running middleware twice."
+      ]
+    },
+    {
+      "key": "race-condition-coupon-abuse",
+      "title": "Race condition: coupon abuse",
+      "optional": true,
+      "prompt": "A single-use coupon is checked and then marked used in two steps. Apply it more than once and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{r4c3_c0nd1t10n_c0up0n_4bus3}",
+      "hints": [
+        "What happens if several orders with the same coupon arrive at the same moment?",
+        "Look up time-of-check to time-of-use."
+      ]
+    },
+    {
+      "key": "insecure-randomness-gift-card",
+      "title": "Insecure randomness: gift card codes",
+      "optional": true,
+      "prompt": "Gift card codes come from a predictable generator. Predict a valid code, redeem it and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{1ns3cur3_r4nd0mn3ss_g1ft_c4rd}",
+      "hints": [
+        "Collect a few codes and look for what they are derived from."
+      ]
+    },
+    {
+      "key": "npm-supply-chain-typosquat",
+      "title": "npm supply chain typosquatting",
+      "optional": true,
+      "prompt": "The project depends on a typosquatted npm package whose install script drops a file. Follow the chain to that file and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{npm_typ0sqv4tt1ng_dr0p_4i_rul3s}",
+      "hints": [
+        "The documents page source names a recently added dependency.",
+        "Reading files outside the documents directory is a skill you already have here."
+      ]
+    },
+    {
+      "key": "ai-rules-file-backdoor",
+      "title": "AI rules file backdoor",
+      "optional": true,
+      "prompt": "The dropped AI rules file steers coding agents into adding a backdoor. Find the backdoor in the running app and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{rul3s_f1l3_b4ckd00r_3xpl01t3d}",
+      "hints": [
+        "Read the rules file from the typosquat chain: what does it tell an agent to add?"
+      ]
+    },
+    {
+      "key": "jwt-algorithm-confusion",
+      "title": "JWT algorithm confusion",
+      "prompt": "The partner API verifies RS256 tokens but also accepts HS256. Sign a token with the public key as the HMAC secret, read the partner data and collect the flag.",
+      "check": {
+        "evidence": "SECRET",
+        "format": "OSS{%s}"
+      },
+      "dev": "OSS{jwt_4lg_c0nfus10n}",
+      "hints": [
+        "Where does the partner API publish its public key?",
+        "Look up JWT algorithm confusion between RS256 and HS256."
+      ]
+    }
+  ]
+}
