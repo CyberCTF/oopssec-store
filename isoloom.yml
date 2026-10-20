@@ -9,94 +9,134 @@ name: oopssec-store
 # Given by the CyberCTF launcher: this player's flags, one per challenge (OSS{...}, the store's
 # own format). Without them upstream's flags.
 inputs:
-  - CTF_FLAG_MAIN
-  - CTF_FLAG_PUBLIC_ENV_VARIABLE
-  - CTF_FLAG_WEAK_JWT_SECRET
-  - CTF_FLAG_CLIENT_SIDE_PRICE_MANIPULATION
-  - CTF_FLAG_WEAK_MD5_HASHING
-  - CTF_FLAG_INSECURE_DIRECT_OBJECT_REFERENCE
-  - CTF_FLAG_CROSS_SITE_SCRIPTING_XSS
-  - CTF_FLAG_CROSS_SITE_REQUEST_FORGERY
-  - CTF_FLAG_MASS_ASSIGNMENT
-  - CTF_FLAG_PATH_TRAVERSAL
-  - CTF_FLAG_SERVER_SIDE_REQUEST_FORGERY
-  - CTF_FLAG_SQL_INJECTION
-  - CTF_FLAG_INFORMATION_DISCLOSURE_API_ERROR
-  - CTF_FLAG_MALICIOUS_FILE_UPLOAD
-  - CTF_FLAG_PRODUCT_SEARCH_SQL_INJECTION
-  - CTF_FLAG_SESSION_FIXATION_WEAK_SESSION_MANAGEMENT
-  - CTF_FLAG_BRUTE_FORCE_NO_RATE_LIMITING
-  - CTF_FLAG_X_FORWARDED_FOR_SQL_INJECTION
-  - CTF_FLAG_PROMPT_INJECTION_AI_ASSISTANT
-  - CTF_FLAG_BROKEN_OBJECT_LEVEL_AUTHORIZATION
-  - CTF_FLAG_BROKEN_FUNCTION_LEVEL_AUTHORIZATION
-  - CTF_FLAG_SECOND_ORDER_SQL_INJECTION
-  - CTF_FLAG_PLAINTEXT_PASSWORD_IN_LOGS
-  - CTF_FLAG_XXE_SUPPLIER_ORDER_IMPORT
-  - CTF_FLAG_INSECURE_PASSWORD_RESET
-  - CTF_FLAG_OPEN_REDIRECT
-  - CTF_FLAG_SELF_XSS_PROFILE_INJECTION
-  - CTF_FLAG_CSRF_PROFILE_TAKEOVER_CHAIN
-  - CTF_FLAG_AES_CBC_PADDING_ORACLE
-  - CTF_FLAG_MCP_MALICIOUS_SERVER
-  - CTF_FLAG_MIDDLEWARE_AUTHORIZATION_BYPASS
-  - CTF_FLAG_RACE_CONDITION_COUPON_ABUSE
-  - CTF_FLAG_INSECURE_RANDOMNESS_GIFT_CARD
-  - CTF_FLAG_NPM_SUPPLY_CHAIN_TYPOSQUAT
-  - CTF_FLAG_AI_RULES_FILE_BACKDOOR
-  - CTF_FLAG_JWT_ALGORITHM_CONFUSION
-
+  CTF_FLAG_MAIN: {}
+  CTF_FLAG_PUBLIC_ENV_VARIABLE: {}
+  CTF_FLAG_WEAK_JWT_SECRET: {}
+  CTF_FLAG_CLIENT_SIDE_PRICE_MANIPULATION: {}
+  CTF_FLAG_WEAK_MD5_HASHING: {}
+  CTF_FLAG_INSECURE_DIRECT_OBJECT_REFERENCE: {}
+  CTF_FLAG_CROSS_SITE_SCRIPTING_XSS: {}
+  CTF_FLAG_CROSS_SITE_REQUEST_FORGERY: {}
+  CTF_FLAG_MASS_ASSIGNMENT: {}
+  CTF_FLAG_PATH_TRAVERSAL: {}
+  CTF_FLAG_SERVER_SIDE_REQUEST_FORGERY: {}
+  CTF_FLAG_SQL_INJECTION: {}
+  CTF_FLAG_INFORMATION_DISCLOSURE_API_ERROR: {}
+  CTF_FLAG_MALICIOUS_FILE_UPLOAD: {}
+  CTF_FLAG_PRODUCT_SEARCH_SQL_INJECTION: {}
+  CTF_FLAG_SESSION_FIXATION_WEAK_SESSION_MANAGEMENT: {}
+  CTF_FLAG_BRUTE_FORCE_NO_RATE_LIMITING: {}
+  CTF_FLAG_X_FORWARDED_FOR_SQL_INJECTION: {}
+  CTF_FLAG_PROMPT_INJECTION_AI_ASSISTANT: {}
+  CTF_FLAG_BROKEN_OBJECT_LEVEL_AUTHORIZATION: {}
+  CTF_FLAG_BROKEN_FUNCTION_LEVEL_AUTHORIZATION: {}
+  CTF_FLAG_SECOND_ORDER_SQL_INJECTION: {}
+  CTF_FLAG_PLAINTEXT_PASSWORD_IN_LOGS: {}
+  CTF_FLAG_XXE_SUPPLIER_ORDER_IMPORT: {}
+  CTF_FLAG_INSECURE_PASSWORD_RESET: {}
+  CTF_FLAG_OPEN_REDIRECT: {}
+  CTF_FLAG_SELF_XSS_PROFILE_INJECTION: {}
+  CTF_FLAG_CSRF_PROFILE_TAKEOVER_CHAIN: {}
+  CTF_FLAG_AES_CBC_PADDING_ORACLE: {}
+  CTF_FLAG_MCP_MALICIOUS_SERVER: {}
+  CTF_FLAG_MIDDLEWARE_AUTHORIZATION_BYPASS: {}
+  CTF_FLAG_RACE_CONDITION_COUPON_ABUSE: {}
+  CTF_FLAG_INSECURE_RANDOMNESS_GIFT_CARD: {}
+  CTF_FLAG_NPM_SUPPLY_CHAIN_TYPOSQUAT: {}
+  CTF_FLAG_AI_RULES_FILE_BACKDOOR: {}
+  CTF_FLAG_JWT_ALGORITHM_CONFUSION: {}
 networks:
-  lab: { cidr: 10.60.35.0/24, internet: false }
+  lab: {cidr: 10.60.35.0/24, internet: false}
 
 machines:
   store:
-    networks: { lab: 10 }
-    services: [{ port: 3000, name: web, http: true, publish: 3000 }]
-    resources: { cpus: 1, memory_mb: 1024 }
-    volumes: { data: /app/data, uploads: /app/uploads, documents: /app/documents }
-    inputs:
-      - CTF_FLAG_MAIN
-      - CTF_FLAG_PUBLIC_ENV_VARIABLE
-      - CTF_FLAG_WEAK_JWT_SECRET
-      - CTF_FLAG_CLIENT_SIDE_PRICE_MANIPULATION
-      - CTF_FLAG_WEAK_MD5_HASHING
-      - CTF_FLAG_INSECURE_DIRECT_OBJECT_REFERENCE
-      - CTF_FLAG_CROSS_SITE_SCRIPTING_XSS
-      - CTF_FLAG_CROSS_SITE_REQUEST_FORGERY
-      - CTF_FLAG_MASS_ASSIGNMENT
-      - CTF_FLAG_PATH_TRAVERSAL
-      - CTF_FLAG_SERVER_SIDE_REQUEST_FORGERY
-      - CTF_FLAG_SQL_INJECTION
-      - CTF_FLAG_INFORMATION_DISCLOSURE_API_ERROR
-      - CTF_FLAG_MALICIOUS_FILE_UPLOAD
-      - CTF_FLAG_PRODUCT_SEARCH_SQL_INJECTION
-      - CTF_FLAG_SESSION_FIXATION_WEAK_SESSION_MANAGEMENT
-      - CTF_FLAG_BRUTE_FORCE_NO_RATE_LIMITING
-      - CTF_FLAG_X_FORWARDED_FOR_SQL_INJECTION
-      - CTF_FLAG_PROMPT_INJECTION_AI_ASSISTANT
-      - CTF_FLAG_BROKEN_OBJECT_LEVEL_AUTHORIZATION
-      - CTF_FLAG_BROKEN_FUNCTION_LEVEL_AUTHORIZATION
-      - CTF_FLAG_SECOND_ORDER_SQL_INJECTION
-      - CTF_FLAG_PLAINTEXT_PASSWORD_IN_LOGS
-      - CTF_FLAG_XXE_SUPPLIER_ORDER_IMPORT
-      - CTF_FLAG_INSECURE_PASSWORD_RESET
-      - CTF_FLAG_OPEN_REDIRECT
-      - CTF_FLAG_SELF_XSS_PROFILE_INJECTION
-      - CTF_FLAG_CSRF_PROFILE_TAKEOVER_CHAIN
-      - CTF_FLAG_AES_CBC_PADDING_ORACLE
-      - CTF_FLAG_MCP_MALICIOUS_SERVER
-      - CTF_FLAG_MIDDLEWARE_AUTHORIZATION_BYPASS
-      - CTF_FLAG_RACE_CONDITION_COUPON_ABUSE
-      - CTF_FLAG_INSECURE_RANDOMNESS_GIFT_CARD
-      - CTF_FLAG_NPM_SUPPLY_CHAIN_TYPOSQUAT
-      - CTF_FLAG_AI_RULES_FILE_BACKDOOR
-      - CTF_FLAG_JWT_ALGORITHM_CONFUSION
-    docker:
-      build: app
-      dockerfile: build/store/Dockerfile
-      init: [ctf/flag.sh]   # copies two flags into the rows the first seed wrote them to
-
+    networks: {lab: 10}
+    resources: {cpus: 1, memory_mb: 1024}
+    volumes: {data: /app/data, uploads: /app/uploads, documents: /app/documents}
+    ports:
+      web:
+        port: 3000
+        protocol: http
+        publish: true
+    files:
+      - path: /run/lab/ctf_flag_main
+        input: CTF_FLAG_MAIN
+      - path: /run/lab/ctf_flag_public_env_variable
+        input: CTF_FLAG_PUBLIC_ENV_VARIABLE
+      - path: /run/lab/ctf_flag_weak_jwt_secret
+        input: CTF_FLAG_WEAK_JWT_SECRET
+      - path: /run/lab/ctf_flag_client_side_price_manipulation
+        input: CTF_FLAG_CLIENT_SIDE_PRICE_MANIPULATION
+      - path: /run/lab/ctf_flag_weak_md5_hashing
+        input: CTF_FLAG_WEAK_MD5_HASHING
+      - path: /run/lab/ctf_flag_insecure_direct_object_reference
+        input: CTF_FLAG_INSECURE_DIRECT_OBJECT_REFERENCE
+      - path: /run/lab/ctf_flag_cross_site_scripting_xss
+        input: CTF_FLAG_CROSS_SITE_SCRIPTING_XSS
+      - path: /run/lab/ctf_flag_cross_site_request_forgery
+        input: CTF_FLAG_CROSS_SITE_REQUEST_FORGERY
+      - path: /run/lab/ctf_flag_mass_assignment
+        input: CTF_FLAG_MASS_ASSIGNMENT
+      - path: /run/lab/ctf_flag_path_traversal
+        input: CTF_FLAG_PATH_TRAVERSAL
+      - path: /run/lab/ctf_flag_server_side_request_forgery
+        input: CTF_FLAG_SERVER_SIDE_REQUEST_FORGERY
+      - path: /run/lab/ctf_flag_sql_injection
+        input: CTF_FLAG_SQL_INJECTION
+      - path: /run/lab/ctf_flag_information_disclosure_api_error
+        input: CTF_FLAG_INFORMATION_DISCLOSURE_API_ERROR
+      - path: /run/lab/ctf_flag_malicious_file_upload
+        input: CTF_FLAG_MALICIOUS_FILE_UPLOAD
+      - path: /run/lab/ctf_flag_product_search_sql_injection
+        input: CTF_FLAG_PRODUCT_SEARCH_SQL_INJECTION
+      - path: /run/lab/ctf_flag_session_fixation_weak_session_management
+        input: CTF_FLAG_SESSION_FIXATION_WEAK_SESSION_MANAGEMENT
+      - path: /run/lab/ctf_flag_brute_force_no_rate_limiting
+        input: CTF_FLAG_BRUTE_FORCE_NO_RATE_LIMITING
+      - path: /run/lab/ctf_flag_x_forwarded_for_sql_injection
+        input: CTF_FLAG_X_FORWARDED_FOR_SQL_INJECTION
+      - path: /run/lab/ctf_flag_prompt_injection_ai_assistant
+        input: CTF_FLAG_PROMPT_INJECTION_AI_ASSISTANT
+      - path: /run/lab/ctf_flag_broken_object_level_authorization
+        input: CTF_FLAG_BROKEN_OBJECT_LEVEL_AUTHORIZATION
+      - path: /run/lab/ctf_flag_broken_function_level_authorization
+        input: CTF_FLAG_BROKEN_FUNCTION_LEVEL_AUTHORIZATION
+      - path: /run/lab/ctf_flag_second_order_sql_injection
+        input: CTF_FLAG_SECOND_ORDER_SQL_INJECTION
+      - path: /run/lab/ctf_flag_plaintext_password_in_logs
+        input: CTF_FLAG_PLAINTEXT_PASSWORD_IN_LOGS
+      - path: /run/lab/ctf_flag_xxe_supplier_order_import
+        input: CTF_FLAG_XXE_SUPPLIER_ORDER_IMPORT
+      - path: /run/lab/ctf_flag_insecure_password_reset
+        input: CTF_FLAG_INSECURE_PASSWORD_RESET
+      - path: /run/lab/ctf_flag_open_redirect
+        input: CTF_FLAG_OPEN_REDIRECT
+      - path: /run/lab/ctf_flag_self_xss_profile_injection
+        input: CTF_FLAG_SELF_XSS_PROFILE_INJECTION
+      - path: /run/lab/ctf_flag_csrf_profile_takeover_chain
+        input: CTF_FLAG_CSRF_PROFILE_TAKEOVER_CHAIN
+      - path: /run/lab/ctf_flag_aes_cbc_padding_oracle
+        input: CTF_FLAG_AES_CBC_PADDING_ORACLE
+      - path: /run/lab/ctf_flag_mcp_malicious_server
+        input: CTF_FLAG_MCP_MALICIOUS_SERVER
+      - path: /run/lab/ctf_flag_middleware_authorization_bypass
+        input: CTF_FLAG_MIDDLEWARE_AUTHORIZATION_BYPASS
+      - path: /run/lab/ctf_flag_race_condition_coupon_abuse
+        input: CTF_FLAG_RACE_CONDITION_COUPON_ABUSE
+      - path: /run/lab/ctf_flag_insecure_randomness_gift_card
+        input: CTF_FLAG_INSECURE_RANDOMNESS_GIFT_CARD
+      - path: /run/lab/ctf_flag_npm_supply_chain_typosquat
+        input: CTF_FLAG_NPM_SUPPLY_CHAIN_TYPOSQUAT
+      - path: /run/lab/ctf_flag_ai_rules_file_backdoor
+        input: CTF_FLAG_AI_RULES_FILE_BACKDOOR
+      - path: /run/lab/ctf_flag_jwt_algorithm_confusion
+        input: CTF_FLAG_JWT_ALGORITHM_CONFUSION
+    setup:
+      - ctf/flag.sh
+    app:
+      build:
+        context: app
+        dockerfile: app/Dockerfile.lab
 checks:
   - name: the store answers
     http: http://store:3000/
@@ -108,6 +148,6 @@ checks:
     http: http://store:3000/api/flags/count
 
 message: |
-  OopsSec Store answers at http://localhost:{{ machines.store.services.0.publish }}/. It hides 36
+  OopsSec Store answers at {{ machines.store.ports.web.url }}. It hides 36
   challenges, each with a flag (OSS{...}, your own when the CyberCTF launcher runs it); the app's
   flag checker accepts them too.
